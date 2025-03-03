@@ -144,7 +144,7 @@ function setup() {
     userStartAudio().then(() => {
       mic.start();
       console.log("MOBILE DETECTED: MICROPHONE AUTO-STARTED");
-      background('red');
+      // background('red');
       machineTongueInitiated = true; 
     }).catch(e => {
       console.error("Failed to start audio:", e);
