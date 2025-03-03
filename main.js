@@ -92,7 +92,7 @@ console.log = function (message) {
   consoleDiv.scrollTop = consoleDiv.scrollHeight;
 };
 
-console.log('PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...');
+// console.log('PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...');
 
 
 function setup() {
@@ -135,6 +135,21 @@ function setup() {
 
     // Classify the sound from microphone in real time
     classifier.classifyStart(gotResult);
+
+    // Check if the user is on a mobile device
+  let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Start microphone input automatically on mobile
+    userStartAudio().then(() => {
+      mic.start();
+      console.log("MOBILE DETECTED: MICROPHONE AUTO-STARTED");
+    }).catch(e => {
+      console.error("Failed to start audio:", e);
+    });
+  } else {
+    console.log("PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...");
+  }
 }
 
 let lineX = 0;
