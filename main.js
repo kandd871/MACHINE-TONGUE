@@ -1,6 +1,6 @@
 var mic; // an object for the microphone input
 var fft; // an object for the FFT frequency analyzer
-let noiseThreshold = 0.01; // Lowered threshold to detect more sounds
+let noiseThreshold = 0.005; // Lowered threshold to detect more sounds
 let lastColor1 = [0, 0, 0];
 let lastColor2 = [0, 0, 0];
 let lastColor3 = [0, 0, 0];
@@ -21,7 +21,8 @@ let newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
 
 let classifier;
 let predictedSound = "";
-const modelJson = "https://teachablemachine.withgoogle.com/models/q6xZw5sAA/";
+// const modelJson = "https://teachablemachine.withgoogle.com/models/q6xZw5sAA/";
+const modelJson = "https://teachablemachine.withgoogle.com/models/oU1fsCw_m/";
 
 function preload() {
   // Load Teachable Machine model
@@ -315,7 +316,7 @@ function detectAudioInput() {
 
   if (machineTongueInitiated){
   // Only process every other detection (even detection count)
-  if (detectionCounter % 2 === 0 && micAmplitude > 0.01) {
+  if (detectionCounter % 2 === 0 && micAmplitude > 0.005) {
     updateColorFromSound(peakFreq, micAmplitude, energy);
     generateResponseSound(peakFreq, micAmplitude, energy);
   }
@@ -353,7 +354,7 @@ function updateColorFromSound(frequency, amplitude, energy) {
     g2 = map(amplitude, 0, 0.4, 75, 150);
     b2 = map(amplitude, 0, 0.4, 75, 150);
     console.log('Human speaking...')
-  } else {
+  } else if (predictedSound == "Background Noise"){
     r1 = map(normFreq, 0, 1, 10, 40);
     g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 40);
     b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 40);
@@ -395,7 +396,7 @@ function updateColorFromSound(frequency, amplitude, energy) {
   // if (amplitude < 0.05) { 
   //   y = 0;
   // }
-  console.log(`SPEECH RECEIVED ---> PEAK FREQUENCY: ${frequency.toFixed(2)} HZ; ENERGY: ${energy.toFixed(2)}; AMPLITUDE: ${amplitude.toFixed}`);
+  console.log(`SPEECH RECEIVED ---> PEAK FREQUENCY: ${frequency.toFixed(2)} HZ; ENERGY: ${energy.toFixed(2)}; AMPLITUDE: ${amplitude.toFixed(2)}`);
 
   console.log(`NORMALIZED FREQUENCY: ${normFreq.toFixed(2)} HZ; NORMALIZED ENERGY: ${normEnergy.toFixed(2)}`);
 
@@ -441,9 +442,9 @@ function gotResult(results) {
   // The results are in an array ordered by confidence.
   // console.log(results);
   // Store the first label
-  // if (results[0].confidence > 0.4) {
+  if (results[0].confidence > 0.4) {
     predictedSound = results[0].label;
-  // }
+  }
 }
 
 
