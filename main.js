@@ -433,7 +433,7 @@ if (frequency >= 1500 && frequency <= 4500) {
   // Fade out after 1 second
   setTimeout(() => {
     newOsc.amp(0, 0.1);
-  }, 200);
+  }, 300);
 
   console.log(`SPEAKING RESPONSE AT ---> ${mappedFreq.toFixed(2)} HZ`);
 }
