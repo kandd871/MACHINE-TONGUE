@@ -1,6 +1,6 @@
 var mic; // an object for the microphone input
 var fft; // an object for the FFT frequency analyzer
-let noiseThreshold = 0.005; // Lowered threshold to detect more sounds
+let noiseThreshold = 0.0025; // Lowered threshold to detect more sounds
 let lastColor1 = [0, 0, 0];
 let lastColor2 = [0, 0, 0];
 let lastColor3 = [0, 0, 0];
@@ -425,8 +425,10 @@ if (frequency >= 1500 && frequency <= 4500) {
   let newAmplitude = map(amplitude, 0, 1, 0.75, 1);
 
   // Set frequency and amplitude for the response sound
+  setTimeout(() => {
   newOsc.freq(mappedFreq);
   newOsc.amp(newAmplitude, 0.1);
+  }, 200);
 
   // Fade out after 1 second
   setTimeout(() => {
