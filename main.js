@@ -1,6 +1,7 @@
 var mic; // an object for the microphone input
 var fft; // an object for the FFT frequency analyzer
 let noiseThreshold = 0.0025; // Lowered threshold to detect more sounds
+let ampThreshold = 0.0055; // Lowered threshold to detect more sounds
 let lastColor1 = [0, 0, 0];
 let lastColor2 = [0, 0, 0];
 let lastColor3 = [0, 0, 0];
@@ -31,55 +32,61 @@ function preload() {
   // Load Teachable Machine model
   classifier = ml5.soundClassifier(modelJson);
 }
+if (!isMobile) {
+  // Only open the console window for non-mobile devices
+  newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
+  
+  // Set the window title
+  newWindow.document.title = 'CONSOLE';
 
-// Set the window title
-newWindow.document.title = 'CONSOLE';
-
-newWindow.document.write(`
-  <html>
-    <head>
-      <title>CONSOLE</title>
-      <style>
-        body {
-          margin: 0;
-          margin: 1vw;
-          background-color: black;
-          color: #0f0;
-          font-family: monospace;
-          padding: 0;
-          white-space: pre-wrap;
-          text-transform: uppercase;
-          height: 100vh;
-          display: flex;
-          flex-direction: column;
-          box-sizing: border-box;
+  newWindow.document.write(`
+    <html>
+      <head>
+        <title>CONSOLE</title>
+        <style>
+          body {
+            margin: 0;
+            margin: 1vw;
+            background-color: black;
+            color: #0f0;
+            font-family: monospace;
+            padding: 0;
+            white-space: pre-wrap;
+            text-transform: uppercase;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+          }
+          #console {
+            font-size: 13px;
+            height: 100%;
+            overflow-y: auto;
+          }
+          .log-entry {
+            padding: 5px;
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+          }
+          .noise-detected {
+            color: #000;
+            padding: 5px;
+            padding-bottom: 0px;
         }
-        #console {
-          font-size: 13px;
-          height: 100%;
-          overflow-y: auto;
-        }
-        .log-entry {
-          padding: 5px 0;
-          padding-bottom: 10px;
-          margin-bottom: 5px;
-        }
-        .noise-detected {
-          color: #000;
-          padding: 0px;
-          padding-top: 5px;
-      }
 
-      </style>
-    </head>
-    <body>
-      <div id="console"></div>
-    </body>
-  </html>
+        </style>
+      </head>
+      <body>
+        <div id="console"></div>
+      </body>
+    </html>
+  `);
 
-`);
-
-let consoleDiv = newWindow.document.getElementById('console');
+  let consoleDiv = newWindow.document.getElementById('console');
+} else {
+  // Skip the console log setup for mobile
+  console.log = function () {}; // Disable console.log on mobile devices
+}
 
 // Override console.log to print messages in the new window with a border
 console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
@@ -92,7 +99,11 @@ console.log = function (message, color = `${consoleColorX}`, color2 = `${console
     noiseDetected = 'noise-detected';
     textColor = 'black';
     borderColor = color;
-  } else{
+  } else if (message.includes("KEY PRESSED")){
+    textColor = '#0f0';
+    borderColor = '#0f0';
+  } 
+  else{
     textColor = color;
     borderColor = color2;
   }
@@ -153,6 +164,8 @@ function setup() {
   if (isMobile) {
     // Start microphone input automatically on mobile
     userStartAudio().then(() => {
+      noiseThreshold = 0.001; 
+      ampThreshold = 0.0015; 
       mic.start();
       console.log("MOBILE DETECTED: MICROPHONE AUTO-STARTED");
       // background('red');
@@ -164,6 +177,8 @@ function setup() {
     console.log("PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...");
   }
 }
+
+
 
 let lineX = 0;
 
@@ -249,7 +264,7 @@ function keyPressed() {
   
   let frequency1 = map(decimalValue1, -1, 1, 0, 300);
   let frequency2 = map(decimalValue2, -1, 1, 600, 900);
-  let frequency3 = map(decimalValue3, -1, 1, 1200, 1400);
+  let frequency3 = map(decimalValue3, -1, 1, 1200, 1500);
 
   let amplitude1 = cos(lastDigit);
 
@@ -267,8 +282,6 @@ function keyPressed() {
   osc3.freq(frequency3);
   osc3.amp(amplitude1, 0.1);
   // isPlaying = true;
-
-  // updateColorFromSound(frequency);
 
   if (responseTimer) clearTimeout(responseTimer);
 
@@ -300,8 +313,6 @@ function getWaveType(asciiCode) {
 let detectionCounter = 0; // Counter to keep track of sound detections
 
 function detectAudioInput() {
-  // get the mic level
-  let micLevel = mic.getLevel();
   
   // analyze the sound using FFT
   let spectrum = fft.analyze();
@@ -326,7 +337,7 @@ function detectAudioInput() {
 
   if (machineTongueInitiated){
   // Only process every other detection (even detection count)
-  if (detectionCounter % 2 === 0 && micAmplitude > 0.005) {
+  if (detectionCounter % 2 === 0 && micAmplitude > ampThreshold) {
     updateColorFromSound(peakFreq, micAmplitude, energy);
     generateResponseSound(peakFreq, micAmplitude, energy);
   }
@@ -413,12 +424,6 @@ function updateColorFromSound(frequency, amplitude, energy) {
     y = map(normEnergy, 0.5, 1, height * 0.9, height); // Higher amplitudes above mid
   }
   
-
-  // Ensure some rectangles always start at (0,0)
-  // if (amplitude < 0.05) { 
-  //   y = 0;
-  // }
-  
   console.log(`SPEECH RECEIVED ---> PEAK FREQUENCY: ${frequency.toFixed(2)} HZ; ENERGY: ${energy.toFixed(2)}; AMPLITUDE: ${amplitude.toFixed(2)}`);
 
   console.log(`NORMALIZED FREQUENCY: ${normFreq.toFixed(2)} HZ; NORMALIZED ENERGY: ${normEnergy.toFixed(2)}`);
@@ -436,12 +441,12 @@ function generateResponseSound(frequency, amplitude, energy) {
   // Ensure peakFreq is within a reasonable range
   frequency = constrain(frequency, 20, 8500); // Keep full range within hearing
 
-if (frequency >= 1500 && frequency <= 4500) {
-  mappedFreq = map(frequency, 1500, 4500, 500, 900); // Center range
+if (frequency >= 1500 && frequency < 3000) {
+  mappedFreq = map(frequency, 1500, 3000, 500, 900); // Center range
 } else if (frequency < 1500) {
-  mappedFreq = map(frequency, 20, 1500, 100, 500); // Lower frequencies
+  mappedFreq = map(frequency, 20, 1500, 20, 499); // Lower frequencies
 } else {
-  mappedFreq = map(frequency, 4500, 8500, 900, 1400); // Higher frequencies
+  mappedFreq = map(frequency, 3000, 8500, 901, 3000); // Higher frequencies
 }
 
   // Ensure amplitude remains smooth
@@ -467,7 +472,7 @@ function gotResult(results) {
   // The results are in an array ordered by confidence.
   // console.log(results);
   // Store the first label
-  if (results[0].confidence > 0.4) {
+  if (results[0].confidence > 0.5) {
     predictedSound = results[0].label;
   }
 }
