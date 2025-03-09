@@ -21,6 +21,7 @@ let consoleColorX;
 let consoleColorY;
 let borderColor;
 let consoleDiv;
+let firstXpos;
 
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -91,29 +92,38 @@ if (!isMobile) {
 }
 
 
-if (!isMobile){
+if (!isMobile) {
+  const defaultConsoleLog = console.log; // Store the original log function
+
   console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
+    // If called from windowResized(), use default console.log
+    if (new Error().stack.includes("windowResized")) {
+      defaultConsoleLog(message);
+      return;
+    }
+
     let logClass = '';
     let noiseDetected = '';
     let textColor = '';
     let borderColor = '';
-    if (message.includes("Human speaking...") || message.includes("Unknown speaking...") || message.includes("Machine speaking...")) {
+
+    const msgString = String(message);
+
+    if (msgString.includes("Human speaking...") || msgString.includes("Unknown speaking...") || msgString.includes("Machine speaking...")) {
       logClass = color;
       noiseDetected = 'noise-detected';
       textColor = 'black';
       borderColor = color;
-    } else if (message.includes("KEY PRESSED")){
+    } else if (msgString.includes("KEY PRESSED")) {
       textColor = '#0f0';
       borderColor = '#0f0';
-    } 
-    else{
+    } else {
       textColor = color;
       borderColor = color2;
     }
-  
-    consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${message}</div>`;
-  
-    // Auto-scroll to the last log entry
+
+    consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${msgString}</div>`;
+
     consoleDiv.scrollTop = consoleDiv.scrollHeight;
   };
 }
@@ -166,7 +176,7 @@ function setup() {
     // Start microphone input automatically on mobile
     userStartAudio().then(() => {
       noiseThreshold = 0.001; 
-      ampThreshold = 0.0015; 
+      ampThreshold = 0.002; 
       mic.start();
       machineTongueInitiated = true; 
     }).catch(e => {
@@ -212,10 +222,21 @@ function draw() {
 
     // Add the new rectangle at x = 0
     rectSets.unshift({ x: 0, color1, color2 });
-
     // Reset sound detection flag
     soundDetected = false;
   }
+
+   // Get first rectangle’s x position safely
+   if (rectSets.length > 0) {
+    firstXpos = rectSets.length;
+
+
+    if (firstXpos >= (width*2)) {
+      rectSets = []; // Clear canvas
+      console.log('CONVERSATION ENDED', 'color: #0f0');
+    }
+  }
+
 }
 
 
@@ -239,6 +260,7 @@ function drawGradientRect(x, y, rectWidth, rectHeight, baseColor) {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  console.log(width);
 }
 
 let machineTongueInitiated = false; // Flag to track first key press
@@ -354,9 +376,9 @@ function updateColorFromSound(frequency, amplitude, energy) {
   let r2, g2, b2;
 
   if (predictedSound == "Machine-Made") {
-    r1 = map(normFreq, 0, 1, 100, 255);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 100, 255);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 100, 255);
+    r1 = map(normFreq, 0, 1, 100, 245);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 100, 245);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 100, 245);
 
     // r2 now based on amplitude
     amplitude = constrain(amplitude, 0, 0.4)
@@ -365,9 +387,9 @@ function updateColorFromSound(frequency, amplitude, energy) {
     b2 = map(cos(amplitude * PI / 2), -1, 1, 75, 150);
 
   } else if (predictedSound == "Human-Made") {
-    r1 = map(normFreq, 0, 1, 10, 100);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 100);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 100);
+    r1 = map(normFreq, 0, 1, 40, 100);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 40, 100);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 40, 100);
 
     // r2 now based on amplitude
     r2 = map(amplitude, 0, 0.4, 40, 75);
@@ -375,14 +397,14 @@ function updateColorFromSound(frequency, amplitude, energy) {
     b2 = map(amplitude, 0, 0.4, 40, 75);
 
   } else if (predictedSound == "Background Noise"){
-    r1 = map(normFreq, 0, 1, 5, 40);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 5, 40);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 5, 40);
+    r1 = map(normFreq, 0, 1, 10, 40);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 40);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 40);
 
     // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 5, 40);
-    g2 = map(amplitude, 0, 0.4, 5, 40);
-    b2 = map(amplitude, 0, 0.4, 5, 40);
+    r2 = map(amplitude, 0, 0.4, 10, 40);
+    g2 = map(amplitude, 0, 0.4, 10, 40);
+    b2 = map(amplitude, 0, 0.4, 10, 40);
   }
 
 
@@ -475,7 +497,3 @@ function gotResult(results) {
     predictedSound = results[0].label;
   }
 }
-
-
-
-
