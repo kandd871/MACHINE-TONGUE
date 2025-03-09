@@ -16,6 +16,9 @@ let osc1, osc2, osc3;
 let responseTimer = null;
 let rectSets = []; // Array to hold sets of rectangles
 let lastAmplitude = 0; // Track last amplitude
+let consoleColorX;
+let consoleColorY;
+let borderColor;
 
 let newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
 
@@ -40,7 +43,7 @@ newWindow.document.write(`
         body {
           margin: 0;
           margin: 1vw;
-          background-color: #222;
+          background-color: black;
           color: #0f0;
           font-family: monospace;
           padding: 0;
@@ -59,11 +62,9 @@ newWindow.document.write(`
         .log-entry {
           padding: 5px 0;
           padding-bottom: 10px;
-          border-bottom: 5px solid #0f0;
           margin-bottom: 5px;
         }
         .noise-detected {
-          background-color: #0f0;
           color: #000;
           padding: 0px;
           padding-top: 5px;
@@ -81,13 +82,22 @@ newWindow.document.write(`
 let consoleDiv = newWindow.document.getElementById('console');
 
 // Override console.log to print messages in the new window with a border
-console.log = function (message) {
+console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
   let logClass = '';
+  let noiseDetected = '';
+  let textColor = '';
+  let borderColor = '';
   if (message.includes("Human speaking...") || message.includes("Unknown speaking...") || message.includes("Machine speaking...")) {
-      logClass = 'noise-detected';
+    logClass = color;
+    noiseDetected = 'noise-detected';
+    textColor = 'black';
+    borderColor = color;
+  } else{
+    textColor = color;
+    borderColor = color2;
   }
 
-  consoleDiv.innerHTML += `<div class="log-entry ${logClass}">${message}</div>`;
+  consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${message}</div>`;
 
   // Auto-scroll to the last log entry
   consoleDiv.scrollTop = consoleDiv.scrollHeight;
@@ -334,41 +344,53 @@ function updateColorFromSound(frequency, amplitude, energy) {
   let r2, g2, b2;
 
   if (predictedSound == "Machine-Made") {
-    r1 = map(normFreq, 0, 1, 60, 255);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 60, 255);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 60, 255);
+    r1 = map(normFreq, 0, 1, 155, 255);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 155, 255);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 155, 255);
 
     // r2 now based on amplitude
     amplitude = constrain(amplitude, 0, 0.4)
-    r2 = map(amplitude, 0, 0.4, 70, 140);
-    g2 = map(sin(amplitude * PI * 10), -1, 1, 40, 120);
-    b2 = map(cos(amplitude * PI / 2), -1, 1, 40, 120);
-    console.log('Machine speaking...')
+    r2 = map(amplitude, 0, 0.4, 75, 150);
+    g2 = map(sin(amplitude * PI * 10), -1, 1, 75, 150);
+    b2 = map(cos(amplitude * PI / 2), -1, 1, 75, 150);
+
   } else if (predictedSound == "Human-Made") {
     r1 = map(normFreq, 0, 1, 20, 210);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 20, 210);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 20, 210);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 20, 175);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 20, 175);
 
     // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 75, 150);
-    g2 = map(amplitude, 0, 0.4, 75, 150);
-    b2 = map(amplitude, 0, 0.4, 75, 150);
-    console.log('Human speaking...')
+    r2 = map(amplitude, 0, 0.4, 40, 100);
+    g2 = map(amplitude, 0, 0.4, 40, 100);
+    b2 = map(amplitude, 0, 0.4, 40, 100);
+
   } else if (predictedSound == "Background Noise"){
-    r1 = map(normFreq, 0, 1, 10, 40);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 40);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 40);
+    r1 = map(normFreq, 0, 1, 10, 55);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 55);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 55);
 
     // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 30, 140);
-    g2 = map(amplitude, 0, 0.4, 30, 140);
-    b2 = map(amplitude, 0, 0.4, 30, 140);
-    console.log('Unknown speaking...')
+    r2 = map(amplitude, 0, 0.4, 30, 100);
+    g2 = map(amplitude, 0, 0.4, 30, 100);
+    b2 = map(amplitude, 0, 0.4, 30, 100);
   }
 
 
   let color1 = [r1, g1, b1];
   let color2 = [r2, g2, b2];
+
+  consoleColorX = `rgb(${Math.floor(r1)}, ${Math.floor(g1)}, ${Math.floor(b1)})`;
+  consoleColorY = `rgb(${Math.floor(r2)}, ${Math.floor(g2)}, ${Math.floor(b2)})`;
+
+  if (predictedSound == "Machine-Made") {
+    console.log('Machine speaking...')
+  } else if (predictedSound == "Human-Made") {
+    console.log('Human speaking...')
+  } else if (predictedSound == "Background Noise"){
+    console.log('Unknown speaking...')
+  } else {
+    console.log('Unknown speaking...')
+  }
 
   // Map amplitude (0 to 0.2) to the full width of the canvas
   let x = lineX;
@@ -396,6 +418,7 @@ function updateColorFromSound(frequency, amplitude, energy) {
   // if (amplitude < 0.05) { 
   //   y = 0;
   // }
+  
   console.log(`SPEECH RECEIVED ---> PEAK FREQUENCY: ${frequency.toFixed(2)} HZ; ENERGY: ${energy.toFixed(2)}; AMPLITUDE: ${amplitude.toFixed(2)}`);
 
   console.log(`NORMALIZED FREQUENCY: ${normFreq.toFixed(2)} HZ; NORMALIZED ENERGY: ${normEnergy.toFixed(2)}`);
@@ -403,7 +426,7 @@ function updateColorFromSound(frequency, amplitude, energy) {
   // Store new rectangle data
   rectSets.push({ x, y, color1, color2 });
 
-  console.log(`WRITING RESPONSE ---> X-STRING-COLOR: rgb(${color1[0].toFixed(0)}, ${color1[1].toFixed(0)}, ${color1[2].toFixed(0)}), Y-STRING-COLOR: rgb(${color2[0].toFixed(0)}, ${color2[1].toFixed(0)}, ${color2[2].toFixed(0)}), Y-STRING-VALUE: ${y.toFixed(2)}`);
+  console.log(`WRITING RESPONSE ---> X-STRING-COLOR: rgb(${color1[0].toFixed(0)}, ${color1[1].toFixed(0)}, ${color1[2].toFixed(0)}), Y-STRING-COLOR: rgb(${color2[0].toFixed(0)}, ${color2[1].toFixed(0)}, ${color2[2].toFixed(0)}), Y-STRING-VALUE: ${y.toFixed(2)}`, `${consoleColorX}`, `${consoleColorY}`);
 
   lastAmplitude = amplitude; // Update amplitude for future use
 }
@@ -433,7 +456,7 @@ if (frequency >= 1500 && frequency <= 4500) {
   // Fade out after 1 second
   setTimeout(() => {
     newOsc.amp(0, 0.1);
-  }, 300);
+  }, 200);
 
   console.log(`SPEAKING RESPONSE AT ---> ${mappedFreq.toFixed(2)} HZ`);
 }
