@@ -20,8 +20,9 @@ let lastAmplitude = 0; // Track last amplitude
 let consoleColorX;
 let consoleColorY;
 let borderColor;
+let consoleDiv;
 
-let newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
+let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 let classifier;
 let predictedSound = "";
@@ -32,6 +33,7 @@ function preload() {
   // Load Teachable Machine model
   classifier = ml5.soundClassifier(modelJson);
 }
+
 if (!isMobile) {
   // Only open the console window for non-mobile devices
   newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
@@ -82,37 +84,39 @@ if (!isMobile) {
     </html>
   `);
 
-  let consoleDiv = newWindow.document.getElementById('console');
+  consoleDiv = newWindow.document.getElementById('console');
 } else {
   // Skip the console log setup for mobile
-  console.log = function () {}; // Disable console.log on mobile devices
+
 }
 
-// Override console.log to print messages in the new window with a border
-console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
-  let logClass = '';
-  let noiseDetected = '';
-  let textColor = '';
-  let borderColor = '';
-  if (message.includes("Human speaking...") || message.includes("Unknown speaking...") || message.includes("Machine speaking...")) {
-    logClass = color;
-    noiseDetected = 'noise-detected';
-    textColor = 'black';
-    borderColor = color;
-  } else if (message.includes("KEY PRESSED")){
-    textColor = '#0f0';
-    borderColor = '#0f0';
-  } 
-  else{
-    textColor = color;
-    borderColor = color2;
-  }
 
-  consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${message}</div>`;
-
-  // Auto-scroll to the last log entry
-  consoleDiv.scrollTop = consoleDiv.scrollHeight;
-};
+if (!isMobile){
+  console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
+    let logClass = '';
+    let noiseDetected = '';
+    let textColor = '';
+    let borderColor = '';
+    if (message.includes("Human speaking...") || message.includes("Unknown speaking...") || message.includes("Machine speaking...")) {
+      logClass = color;
+      noiseDetected = 'noise-detected';
+      textColor = 'black';
+      borderColor = color;
+    } else if (message.includes("KEY PRESSED")){
+      textColor = '#0f0';
+      borderColor = '#0f0';
+    } 
+    else{
+      textColor = color;
+      borderColor = color2;
+    }
+  
+    consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${message}</div>`;
+  
+    // Auto-scroll to the last log entry
+    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+  };
+}
 
 // console.log('PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...');
 
@@ -157,9 +161,6 @@ function setup() {
 
     // Classify the sound from microphone in real time
     classifier.classifyStart(gotResult);
-
-    // Check if the user is on a mobile device
-  let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
   if (isMobile) {
     // Start microphone input automatically on mobile
@@ -167,8 +168,6 @@ function setup() {
       noiseThreshold = 0.001; 
       ampThreshold = 0.0015; 
       mic.start();
-      console.log("MOBILE DETECTED: MICROPHONE AUTO-STARTED");
-      // background('red');
       machineTongueInitiated = true; 
     }).catch(e => {
       console.error("Failed to start audio:", e);
@@ -355,9 +354,9 @@ function updateColorFromSound(frequency, amplitude, energy) {
   let r2, g2, b2;
 
   if (predictedSound == "Machine-Made") {
-    r1 = map(normFreq, 0, 1, 155, 255);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 155, 255);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 155, 255);
+    r1 = map(normFreq, 0, 1, 100, 255);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 100, 255);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 100, 255);
 
     // r2 now based on amplitude
     amplitude = constrain(amplitude, 0, 0.4)
@@ -366,24 +365,24 @@ function updateColorFromSound(frequency, amplitude, energy) {
     b2 = map(cos(amplitude * PI / 2), -1, 1, 75, 150);
 
   } else if (predictedSound == "Human-Made") {
-    r1 = map(normFreq, 0, 1, 20, 210);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 20, 175);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 20, 175);
+    r1 = map(normFreq, 0, 1, 10, 100);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 100);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 100);
 
     // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 40, 100);
-    g2 = map(amplitude, 0, 0.4, 40, 100);
-    b2 = map(amplitude, 0, 0.4, 40, 100);
+    r2 = map(amplitude, 0, 0.4, 40, 75);
+    g2 = map(amplitude, 0, 0.4, 40, 75);
+    b2 = map(amplitude, 0, 0.4, 40, 75);
 
   } else if (predictedSound == "Background Noise"){
-    r1 = map(normFreq, 0, 1, 10, 55);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 55);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 55);
+    r1 = map(normFreq, 0, 1, 5, 40);
+    g1 = map(sin(normFreq * PI * 10), -1, 1, 5, 40);
+    b1 = map(cos(normFreq * PI / 2), -1, 1, 5, 40);
 
     // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 30, 100);
-    g2 = map(amplitude, 0, 0.4, 30, 100);
-    b2 = map(amplitude, 0, 0.4, 30, 100);
+    r2 = map(amplitude, 0, 0.4, 5, 40);
+    g2 = map(amplitude, 0, 0.4, 5, 40);
+    b2 = map(amplitude, 0, 0.4, 5, 40);
   }
 
 
