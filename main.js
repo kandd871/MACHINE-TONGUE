@@ -239,14 +239,26 @@ function draw() {
 
 }
 
+function generateRandomShadeOrder(numSteps) {
+  // Generate an array of shade factors from -15 to 15
+  let shadeFactors = [];
+  for (let k = 0; k < numSteps; k++) {
+    shadeFactors.push(map(k, 0, numSteps - 1, 0, 15));
+  }
 
+  // Shuffle the shade factors to create randomness
+  shuffle(shadeFactors, true);
+  return shadeFactors;
+}
 
 function drawGradientRect(x, y, rectWidth, rectHeight, baseColor) {
   let numSteps = 3; // Number of gradient divisions
+  // Get a new random shade order each time the gradient is drawn
+  let shadeFactors = generateRandomShadeOrder(numSteps);
 
+  // Apply the random shades for this line
   for (let k = 0; k < numSteps; k++) {
-    // Slightly adjust the color by adding/subtracting small values
-    let shadeFactor = map(k, 0, numSteps - 1, -15, 15); // Control how much variation there is in the shade
+    let shadeFactor = shadeFactors[k];
 
     // Adjust the base color by a small amount for each shade
     let r = constrain(baseColor[0] + shadeFactor, 0, 255);
@@ -257,6 +269,7 @@ function drawGradientRect(x, y, rectWidth, rectHeight, baseColor) {
     rect(x, y + (k * rectHeight / numSteps), rectWidth, rectHeight / numSteps);
   }
 }
+
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
