@@ -1,8 +1,82 @@
+@font-face {
+  font-family: 'OCRAStd';
+  src: url('fonts/OCRAStd.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html, body {
     margin: 0;
     padding: 0;
+    background-color: black;
+    text-transform: uppercase;
   }
   canvas {
     display: block;
   }
-  
+
+body {
+    font-family: 'OCRAStd', monospace; /* Fallback to monospace if font doesn't load */
+}
+
+#console{
+  display: block;
+  position: absolute;
+  width: 14.5vw;
+  color: #66FF66;
+  right: 0;
+  height: 100vh;
+  overflow-y: scroll;
+  font-size: .9vw;
+  margin: 0;
+  padding: .25vw;
+  background-color: black;
+  border-left: .05px solid #66FF66;
+}
+
+.log-entry {
+  padding: 5px;
+  padding-bottom: 10px;
+  margin-bottom: 5px;
+}
+.noise-detected {
+  color: #000;
+  padding: 5px;
+  padding-bottom: 0px;
+  background-color: #66FF66;
+}
+
+#intro{
+  display: none;
+}
+
+
+@media only screen and (max-width: 600px){
+
+  canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10; /* Ensures the canvas is above text */
+}
+
+ #console{
+  display: none;
+ }
+
+ #intro {
+  width: 65vw;
+  font-size: 2vh;
+  display: block;
+  text-transform: uppercase;
+  position: absolute;
+  color: #66FF66;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  padding: 10px; 
+  text-align: center; 
+  z-index: -1;
+}
+}

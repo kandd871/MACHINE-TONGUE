@@ -1,7 +1,7 @@
 var mic; // an object for the microphone input
 var fft; // an object for the FFT frequency analyzer
 let noiseThreshold = 0.0025; // Lowered threshold to detect more sounds
-let ampThreshold = 0.0055; // Lowered threshold to detect more sounds
+let ampThreshold = 0.003; // Lowered threshold to detect more sounds
 let lastColor1 = [0, 0, 0];
 let lastColor2 = [0, 0, 0];
 let lastColor3 = [0, 0, 0];
@@ -20,8 +20,9 @@ let lastAmplitude = 0; // Track last amplitude
 let consoleColorX;
 let consoleColorY;
 let borderColor;
-let consoleDiv;
+let consoleDiv = document.getElementById('console');
 let firstXpos;
+let isPlaying = false; // Add this at the top with your other variable declarations
 
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -35,106 +36,12 @@ function preload() {
   classifier = ml5.soundClassifier(modelJson);
 }
 
-if (!isMobile) {
-  // Only open the console window for non-mobile devices
-  newWindow = window.open('', 'consoleWindow', 'width=375,height=800');
-  
-  // Set the window title
-  newWindow.document.title = 'CONSOLE';
-
-  newWindow.document.write(`
-    <html>
-      <head>
-        <title>CONSOLE</title>
-        <style>
-          body {
-            margin: 0;
-            margin: 1vw;
-            background-color: black;
-            color: #0f0;
-            font-family: monospace;
-            padding: 0;
-            white-space: pre-wrap;
-            text-transform: uppercase;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-          }
-          #console {
-            font-size: 13px;
-            height: 100%;
-            overflow-y: auto;
-          }
-          .log-entry {
-            padding: 5px;
-            padding-bottom: 10px;
-            margin-bottom: 5px;
-          }
-          .noise-detected {
-            color: #000;
-            padding: 5px;
-            padding-bottom: 0px;
-        }
-
-        </style>
-      </head>
-      <body>
-        <div id="console"></div>
-      </body>
-    </html>
-  `);
-
-  consoleDiv = newWindow.document.getElementById('console');
-} else {
-  // Skip the console log setup for mobile
-
-}
-
-
-if (!isMobile) {
-  const defaultConsoleLog = console.log; // Store the original log function
-
-  console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
-    // If called from windowResized(), use default console.log
-    if (new Error().stack.includes("windowResized")) {
-      defaultConsoleLog(message);
-      return;
-    }
-
-    let logClass = '';
-    let noiseDetected = '';
-    let textColor = '';
-    let borderColor = '';
-
-    const msgString = String(message);
-
-    if (msgString.includes("Human speaking...") || msgString.includes("Unknown speaking...") || msgString.includes("Machine speaking...")) {
-      logClass = color;
-      noiseDetected = 'noise-detected';
-      textColor = 'black';
-      borderColor = color;
-    } else if (msgString.includes("KEY PRESSED")) {
-      textColor = '#0f0';
-      borderColor = '#0f0';
-    } else {
-      textColor = color;
-      borderColor = color2;
-    }
-
-    consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${msgString}</div>`;
-
-    consoleDiv.scrollTop = consoleDiv.scrollHeight;
-  };
-}
-
-// console.log('PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...');
-
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   
-  background(0);
+  // background(0);
+  clear();
   
    // make a microphone object:
   mic = new p5.AudioIn();
@@ -183,10 +90,67 @@ function setup() {
       console.error("Failed to start audio:", e);
     });
   } else {
-    console.log("PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE-TONGUE...");
+    // console.log("PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE TONGUE...");
+    console.log("MACHINE TONGUE is a generative language created for machines by machines.");
+
+    console.log("PRESS A KEY TO INITIATE A CONVERSATION IN MACHINE TONGUE.");
   }
 }
 
+// function popUpWindow() {
+
+
+//   newWindow.onload = function () {
+//     consoleDiv = newWindow.document.getElementById('console');
+//     console.log('MACHINE TONGUE INITIATED...');
+//   }
+
+//   if (newWindow) {
+//     newWindow.focus(); // Bring focus back
+// }
+
+// }
+
+function startConsole(){
+  
+}
+
+
+if (!isMobile) {
+const defaultConsoleLog = console.log; // Store the original log function
+
+console.log = function (message, color = `${consoleColorX}`, color2 = `${consoleColorY}`) {
+  // If called from windowResized(), use default console.log
+  if (new Error().stack.includes("windowResized")) {
+    defaultConsoleLog(message);
+    return;
+  }
+
+  let logClass = '';
+  let noiseDetected = '';
+  let textColor = '';
+  let borderColor = '';
+
+  const msgString = String(message);
+
+  if (msgString.includes("...") || msgString.includes("generative") || msgString.includes("ENDED")) {
+    logClass = color;
+    noiseDetected = 'noise-detected';
+    textColor = 'black';
+    borderColor = color;
+  } else if (msgString.includes("KEY PRESSED")) {
+    textColor = '#66FF66';
+    borderColor = '#66FF66';
+  } else {
+    textColor = color;
+    borderColor = color2;
+  }
+
+  consoleDiv.innerHTML += `<div class="log-entry ${logClass} ${noiseDetected}" style="color: ${textColor}; border-bottom: 5px solid ${borderColor}; background-color: ${logClass};">${msgString}</div>`;
+
+  consoleDiv.scrollTop = consoleDiv.scrollHeight;
+};
+}
 
 
 let lineX = 0;
@@ -197,7 +161,8 @@ function draw() {
   detectAudioInput(); // Detect new sound and update colors
   // Only update the canvas if a sound was detected
   if (soundDetected) {
-    background(0); // Clear the screen each frame
+    // background(0); 
+    clear();
 
     noStroke();
 
@@ -233,7 +198,7 @@ function draw() {
 
     if (firstXpos >= (width*2)) {
       rectSets = []; // Clear canvas
-      console.log('CONVERSATION ENDED', 'color: #0f0');
+      console.log('CONVERSATION ENDED.', 'color: #66FF66');
     }
   }
 
@@ -281,6 +246,16 @@ let machineTongueInitiated = false; // Flag to track first key press
 function keyPressed() {
   // if (!started) started = true;
 
+  if (!machineTongueInitiated) {
+    console.log('MACHINE TONGUE INITIATED...');
+    machineTongueInitiated = true; 
+    if (!isMobile) {
+    startConsole();
+    }
+  } else{
+    
+  }
+
   let asciiCode = key.charCodeAt(0);
   let binaryCode = asciiCode.toString(2);
   
@@ -315,16 +290,12 @@ function keyPressed() {
   osc3.setType(waveType);
   osc3.freq(frequency3);
   osc3.amp(amplitude1, 0.1);
-  // isPlaying = true;
+  isPlaying = true;
 
   if (responseTimer) clearTimeout(responseTimer);
 
-  if (!machineTongueInitiated) {
-    console.log('MACHINE-TONGUE INITIATED');
-    machineTongueInitiated = true; // Prevent future logs
-  }
   
-  console.log(`KEY PRESSED BY HUMAN ---> ${key}; ASCII: ${asciiCode}; BINARY: ${binaryCode}; LOW FREQUENCY EMITTED: ${frequency1.toFixed(2)}; MID FREQUENCY EMITTED: ${frequency2.toFixed(2)}; HIGH FREQUENCY EMITTED: ${frequency3.toFixed(2)} Hz, WAVEFORM: ${waveType}, AMPLITUDE: ${amplitude1.toFixed(2)}`);
+  console.log(`KEY PRESSED ---> ${key}; ASCII: ${asciiCode}; BINARY: ${binaryCode}; LOW FREQUENCY EMITTED: ${frequency1.toFixed(2)} HZ; MID FREQUENCY EMITTED: ${frequency2.toFixed(2)}; HIGH FREQUENCY EMITTED: ${frequency3.toFixed(2)} Hz, WAVEFORM: ${waveType}, AMPLITUDE: ${amplitude1.toFixed(2)}`);
   
 }
 
@@ -376,7 +347,6 @@ function detectAudioInput() {
     generateResponseSound(peakFreq, micAmplitude, energy);
   }
   }
-  
 }
 
 function updateColorFromSound(frequency, amplitude, energy) {
@@ -384,6 +354,7 @@ function updateColorFromSound(frequency, amplitude, energy) {
   let normEnergy = map(energy, 0, 255, 0, 1);
   let normAmpHeight = map(amplitude, 0, 0.4, 0, height); 
   let normAmpWidth = map(amplitude, 0, 0.4, 0, width); 
+  amplitude = constrain(amplitude, 0, 0.4)
 
   let r1, g1, b1;
   let r2, g2, b2;
@@ -393,33 +364,28 @@ function updateColorFromSound(frequency, amplitude, energy) {
     g1 = map(sin(normFreq * PI * 10), -1, 1, 100, 245);
     b1 = map(cos(normFreq * PI / 2), -1, 1, 100, 245);
 
-    // r2 now based on amplitude
-    amplitude = constrain(amplitude, 0, 0.4)
-    r2 = map(amplitude, 0, 0.4, 75, 150);
-    g2 = map(sin(amplitude * PI * 10), -1, 1, 75, 150);
-    b2 = map(cos(amplitude * PI / 2), -1, 1, 75, 150);
+    r2 = map(amplitude, 0, 0.4, 75, 125);
+    g2 = map(sin(amplitude), -1, 1, 75, 125);
+    b2 = map(cos(amplitude), -1, 1, 75, 125);
 
   } else if (predictedSound == "Human-Made") {
-    r1 = map(normFreq, 0, 1, 40, 100);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 40, 100);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 40, 100);
+    r1 = map(cos(normFreq * PI * 10), -1, 1, 40, 100);
+    g1 = map(normFreq, 0, 1, 40, 100);
+    b1 = map(sin(normFreq * PI / 2), -1, 1, 40, 100);
 
-    // r2 now based on amplitude
-    r2 = map(amplitude, 0, 0.4, 40, 75);
-    g2 = map(amplitude, 0, 0.4, 40, 75);
-    b2 = map(amplitude, 0, 0.4, 40, 75);
+    r2 = map(amplitude, 0, 0.4, 40, 70);
+    g2 = map(amplitude, 0, 0.4, 40, 70);
+    b2 = map(amplitude, 0, 0.4, 40, 70);
 
   } else if (predictedSound == "Background Noise"){
-    r1 = map(normFreq, 0, 1, 10, 40);
-    g1 = map(sin(normFreq * PI * 10), -1, 1, 10, 40);
-    b1 = map(cos(normFreq * PI / 2), -1, 1, 10, 40);
+    r1 = map(sin(normFreq * PI / 3), -1, 1, 10, 40);
+    g1 = map(cos(normFreq * PI * 3), -1, 1, 10, 40);
+    b1 = map(normFreq, 0, 1, 10, 40);
 
-    // r2 now based on amplitude
     r2 = map(amplitude, 0, 0.4, 10, 40);
     g2 = map(amplitude, 0, 0.4, 10, 40);
     b2 = map(amplitude, 0, 0.4, 10, 40);
   }
-
 
   let color1 = [r1, g1, b1];
   let color2 = [r2, g2, b2];
