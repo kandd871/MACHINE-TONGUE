@@ -22,16 +22,48 @@ body {
 #console{
   display: block;
   position: absolute;
-  width: 14.5vw;
+  width: 27.5vh;
   color: #66FF66;
   right: 0;
   height: 100vh;
   overflow-y: scroll;
-  font-size: .9vw;
+  /* font-size: .9vw; */
+  font-size: 13px;
   margin: 0;
-  padding: .25vw;
+  padding: 4px;
+  /* padding: .25vw; */
   background-color: black;
   border-left: .05px solid #66FF66;
+  padding-top: 70px;
+}
+
+#timer{
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  color: #66FF66; 
+  background: black; 
+  padding: 10px; 
+  padding-bottom: 7px;
+  /* width: 13.6vw; */
+  width: 25.8vh;
+  text-align: left;
+  /* border-left: .05px solid #66FF66; */
+}
+
+#percentage{
+  position: fixed;
+  top: 30px;
+  right: 0px;
+  font-size: 7.6px;
+  background: #66FF66; 
+  color: black; 
+  padding: 10px; 
+  padding-bottom: 7px;
+  /* width: 13.6vw; */
+  width: 25.8vh;
+  text-align: left;
+  /* border-left: .05px solid #66FF66; */
 }
 
 .log-entry {

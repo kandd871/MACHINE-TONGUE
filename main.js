@@ -26,6 +26,15 @@ let isPlaying = false; // Add this at the top with your other variable declarati
 
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+let startTime = null;
+let timerInterval = null;
+const timerElement = document.getElementById("timer");
+
+let timeSpent = { machine: 0, human: 0, unknown: 0 };
+let currentState = "unknown"; // Default to unknown until input is detected
+let lastUpdateTime;
+
+
 let classifier;
 let predictedSound = "";
 // const modelJson = "https://teachablemachine.withgoogle.com/models/q6xZw5sAA/";
@@ -97,24 +106,88 @@ function setup() {
   }
 }
 
-// function popUpWindow() {
-
-
-//   newWindow.onload = function () {
-//     consoleDiv = newWindow.document.getElementById('console');
-//     console.log('MACHINE TONGUE INITIATED...');
-//   }
-
-//   if (newWindow) {
-//     newWindow.focus(); // Bring focus back
-// }
-
-// }
-
 function startConsole(){
   
 }
 
+
+function startTimer() {
+  startTime = performance.now(); // More accurate than Date.now()
+  lastUpdateTime = startTime;
+
+  timerInterval = setInterval(() => {
+    let now = performance.now();
+    let elapsedTime = now - startTime;
+
+    // Update the time spent in the current state
+    timeSpent[currentState] += now - lastUpdateTime;
+    lastUpdateTime = now;
+
+    let minutes = Math.floor(elapsedTime / 60000);
+    let seconds = Math.floor((elapsedTime % 60000) / 1000);
+    let milliseconds = Math.floor((elapsedTime % 1000) / 10); // Convert to two-digit format
+
+    // Format time as MM:SS:MS (two digits for milliseconds)
+    let formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
+
+    // Safely access the timer element
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+      timerElement.innerText = formattedTime;
+    }
+
+    // Calculate conversation percentages
+    let totalTime = Object.values(timeSpent).reduce((a, b) => a + b, 0);
+    
+    // Avoid division by zero
+    if (totalTime > 0) {
+      let percentages = {
+        machine: ((timeSpent.machine / totalTime) * 100).toFixed(0),
+        human: ((timeSpent.human / totalTime) * 100).toFixed(0),
+        unknown: ((timeSpent.unknown / totalTime) * 100).toFixed(0),
+      };
+
+      // Safely update the display with real-time percentages
+      const introElement = document.getElementById('percentage');
+      if (introElement) {
+        introElement.innerHTML = `
+          ${percentages.machine}% MACHINE; ${percentages.human}% HUMAN; ${percentages.unknown}% UNKNOWN
+        `;
+      }
+    }
+  }, 10); // Update every 10 milliseconds
+}
+
+function switchState(newState) {
+  if (!newState || !['machine', 'human', 'unknown'].includes(newState)) {
+    newState = 'unknown'; // Default to unknown if invalid state
+  }
+  
+  let now = performance.now();
+  
+  // Make sure lastUpdateTime is initialized
+  if (lastUpdateTime === undefined) {
+    lastUpdateTime = now;
+    return;
+  }
+  
+  // Only update if the state is changing
+  if (currentState !== newState) {
+    // Add the time spent in the previous state
+    timeSpent[currentState] += now - lastUpdateTime;
+    lastUpdateTime = now;
+    currentState = newState;
+    
+    // Debug info
+    // console.log(`Switched to ${newState} state. Current time splits: Machine: ${timeSpent.machine.toFixed(0)}ms, Human: ${timeSpent.human.toFixed(0)}ms, Unknown: ${timeSpent.unknown.toFixed(0)}ms`);
+  }
+}
+
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('timer').innerText = "00:00:00";
+}
 
 if (!isMobile) {
 const defaultConsoleLog = console.log; // Store the original log function
@@ -246,16 +319,24 @@ let machineTongueInitiated = false; // Flag to track first key press
 function keyPressed() {
   // if (!started) started = true;
 
+  if (keyCode === ESCAPE || keyCode === BACKSPACE) {
+    rectSets = []; // Clear canvas
+    machineTongueInitiated = false; // Reset state
+    console.log('CONVERSATION ENDED. PRESS A KEY TO START A NEW ONE.', 'color: #66FF66');
+    resetTimer();
+    // Reset timeSpent and update percentages
+    timeSpent = { machine: 0, human: 0, unknown: 0 };
+    return;
+  }
+
   if (!machineTongueInitiated) {
     console.log('MACHINE TONGUE INITIATED...');
     machineTongueInitiated = true; 
+    startTimer();
     if (!isMobile) {
     startConsole();
     }
-  } else{
-    
   }
-
   let asciiCode = key.charCodeAt(0);
   let binaryCode = asciiCode.toString(2);
   
@@ -395,12 +476,16 @@ function updateColorFromSound(frequency, amplitude, energy) {
 
   if (predictedSound == "Machine-Made") {
     console.log('Machine speaking...')
+    switchState("machine");
   } else if (predictedSound == "Human-Made") {
-    console.log('Human speaking...')
+    console.log('Human speaking...');
+    switchState("human");
   } else if (predictedSound == "Background Noise"){
-    console.log('Unknown speaking...')
+    console.log('Unknown speaking...');
+    switchState("unknown");
   } else {
-    console.log('Unknown speaking...')
+    console.log('Unknown speaking...');
+    switchState("unknown");
   }
 
   // Map amplitude (0 to 0.2) to the full width of the canvas
