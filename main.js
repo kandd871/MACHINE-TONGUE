@@ -332,9 +332,9 @@ function keyPressed() {
   if (!machineTongueInitiated) {
     console.log('MACHINE TONGUE INITIATED...');
     machineTongueInitiated = true; 
-    startTimer();
     if (!isMobile) {
     startConsole();
+    startTimer();
     }
   }
   let asciiCode = key.charCodeAt(0);
