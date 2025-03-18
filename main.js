@@ -12,7 +12,7 @@ let newSoundActive = false;
 let lastFreq = 0;
 let direction = 1;
 let newOscAmp = 0;
-let newOsc;
+let newOsc1,  newOsc2,  newOsc3;
 let osc1, osc2, osc3;
 let responseTimer = null;
 let rectSets = []; // Array to hold sets of rectangles
@@ -521,34 +521,52 @@ function updateColorFromSound(frequency, amplitude, energy) {
   lastAmplitude = amplitude; // Update amplitude for future use
 }
 
-
 function generateResponseSound(frequency, amplitude, energy) {
   // Ensure peakFreq is within a reasonable range
   frequency = constrain(frequency, 20, 8500); // Keep full range within hearing
 
-if (frequency >= 1500 && frequency < 3000) {
-  mappedFreq = map(frequency, 1500, 3000, 500, 900); // Center range
-} else if (frequency < 1500) {
-  mappedFreq = map(frequency, 20, 1500, 20, 499); // Lower frequencies
-} else {
-  mappedFreq = map(frequency, 3000, 8500, 901, 3000); // Higher frequencies
-}
+  // Create three frequency ranges based on the input frequency
+  let frequency1 = map(frequency, 20, 8500, 0, 499);
+  let frequency2 = map(frequency, 20, 8500, 500, 900);
+  let frequency3 = map(frequency, 20, 8500, 901, 3000);
+
+  // Determine waveType based on energy value
+  let waveTypeIndex = Math.floor(map(energy, 0, 255, 0, 4));
+  let waveType;
+  if (waveTypeIndex === 0) waveType = 'sine';
+  else if (waveTypeIndex === 1) waveType = 'triangle';
+  else if (waveTypeIndex === 2) waveType = 'square';
+  else waveType = 'sawtooth';
 
   // Ensure amplitude remains smooth
-  let newAmplitude = map(amplitude, 0, 1, 0.75, 1);
+  let newAmplitude = map(amplitude, 0, 1, 0.05, 0.2); // Reduced amplitude for less jarring sound
 
-  // Set frequency and amplitude for the response sound
+  // Set frequency and amplitude for the response sounds
   setTimeout(() => {
-  newOsc.freq(mappedFreq);
-  newOsc.amp(newAmplitude, 0.1);
+    osc1.setType(waveType);
+    osc1.freq(frequency1);
+    osc1.amp(newAmplitude, 0.1);
+
+    osc2.setType(waveType);
+    osc2.freq(frequency2);
+    osc2.amp(newAmplitude, 0.1);
+
+    osc3.setType(waveType);
+    osc3.freq(frequency3);
+    osc3.amp(newAmplitude, 0.1);
+    
+    isPlaying = true;
+  }, 200);
+  
+  // Fade out after a short period
+  setTimeout(() => {
+    osc1.amp(0, 0.1);
+    osc2.amp(0, 0.1);
+    osc3.amp(0, 0.1);
+    setTimeout(() => isPlaying = false, 100);
   }, 200);
 
-  // Fade out after 1 second
-  setTimeout(() => {
-    newOsc.amp(0, 0.1);
-  }, 200);
-
-  console.log(`SPEAKING RESPONSE AT ---> ${mappedFreq.toFixed(2)} HZ`);
+  console.log(`SPEAKING RESPONSE AT ---> LOW: ${frequency1.toFixed(2)} HZ, MID: ${frequency2.toFixed(2)} HZ, HIGH: ${frequency3.toFixed(2)} HZ, WAVEFORM: ${waveType}`);
 }
 
 
