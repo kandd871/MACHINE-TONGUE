@@ -575,7 +575,7 @@ function gotResult(results) {
   // The results are in an array ordered by confidence.
   // console.log(results);
   // Store the first label
-  if (results[0].confidence > 0.75) {
+  if (results[0].confidence > 0.25) {
     predictedSound = results[0].label;
   }
 }
