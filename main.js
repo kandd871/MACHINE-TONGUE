@@ -539,7 +539,7 @@ function generateResponseSound(frequency, amplitude, energy) {
   else waveType = 'sawtooth';
 
   // Ensure amplitude remains smooth
-  let newAmplitude = map(amplitude, 0, 1, 0.05, 0.2); // Reduced amplitude for less jarring sound
+  let newAmplitude = map(amplitude, 0, 1, 0.75, 2); // Reduced amplitude for less jarring sound
 
   // Set frequency and amplitude for the response sounds
   setTimeout(() => {
