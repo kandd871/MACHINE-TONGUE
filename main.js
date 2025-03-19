@@ -539,7 +539,7 @@ function generateResponseSound(frequency, amplitude, energy) {
   else waveType = 'sawtooth';
 
   // Ensure amplitude remains smooth
-  let newAmplitude = map(amplitude, 0, 1, 0.75, 2); // Reduced amplitude for less jarring sound
+  let newAmplitude = map(amplitude, 0, 1, 1, 2); // Reduced amplitude for less jarring sound
 
   // Set frequency and amplitude for the response sounds
   setTimeout(() => {
@@ -575,7 +575,7 @@ function gotResult(results) {
   // The results are in an array ordered by confidence.
   // console.log(results);
   // Store the first label
-  if (results[0].confidence > 0.5) {
+  if (results[0].confidence > 0.6) {
     predictedSound = results[0].label;
   }
 }
