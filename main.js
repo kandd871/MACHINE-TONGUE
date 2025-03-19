@@ -423,7 +423,7 @@ function detectAudioInput() {
 
   if (machineTongueInitiated){
   // Only process every other detection (even detection count)
-  if (detectionCounter % 2 === 0 && micAmplitude > ampThreshold) {
+  if (micAmplitude > ampThreshold) {
     updateColorFromSound(peakFreq, micAmplitude, energy);
     generateResponseSound(peakFreq, micAmplitude, energy);
   }
@@ -556,7 +556,7 @@ function generateResponseSound(frequency, amplitude, energy) {
     osc3.amp(newAmplitude, 0.1);
     
     isPlaying = true;
-  }, 200);
+  }, 100);
   
   // Fade out after a short period
   setTimeout(() => {
@@ -564,7 +564,7 @@ function generateResponseSound(frequency, amplitude, energy) {
     osc2.amp(0, 0.1);
     osc3.amp(0, 0.1);
     setTimeout(() => isPlaying = false, 100);
-  }, 200);
+  }, 300);
 
   console.log(`SPEAKING RESPONSE AT ---> LOW: ${frequency1.toFixed(2)} HZ, MID: ${frequency2.toFixed(2)} HZ, HIGH: ${frequency3.toFixed(2)} HZ, WAVEFORM: ${waveType}`);
 }
@@ -575,7 +575,7 @@ function gotResult(results) {
   // The results are in an array ordered by confidence.
   // console.log(results);
   // Store the first label
-  if (results[0].confidence > 0.6) {
+  if (results[0].confidence > 0.75) {
     predictedSound = results[0].label;
   }
 }
