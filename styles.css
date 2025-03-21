@@ -17,6 +17,13 @@ html, body {
 
 body {
     font-family: 'OCRAStd', monospace; /* Fallback to monospace if font doesn't load */
+    overflow: hidden;
+    cursor: none
+}
+
+
+body::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Edge */
 }
 
 #console{
@@ -35,6 +42,18 @@ body {
   background-color: black;
   border-left: .05px solid #66FF66;
   padding-top: 70px;
+  scrollbar-width: none;
+  /* display: none; */
+
+}
+
+#console {
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+#console::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Edge */
 }
 
 #timer{
