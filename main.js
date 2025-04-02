@@ -515,9 +515,9 @@ function updateColorFromSound(frequency, amplitude, energy) {
 
   // Store new rectangle data
   rectSets.push({ x, y, color1, color2 });
-
+  if (!isMobile) {
   console.log(`WRITING RESPONSE ---> X-STRING-COLOR: rgb(${color1[0].toFixed(0)}, ${color1[1].toFixed(0)}, ${color1[2].toFixed(0)}), Y-STRING-COLOR: rgb(${color2[0].toFixed(0)}, ${color2[1].toFixed(0)}, ${color2[2].toFixed(0)}), Y-STRING-VALUE: ${y.toFixed(2)}`, `${consoleColorX}`, `${consoleColorY}`);
-
+  }
   lastAmplitude = amplitude; // Update amplitude for future use
 }
 
